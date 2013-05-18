@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   ## the sub! line in the Rakefile
   s.name              = 'interactive_editor'
   s.version           = '0.0.10'
-  s.date              = '2011-09-07'
+  s.date              = '2013-05-17'
   s.rubyforge_project = 'interactive_editor'
 
   ## Make sure your summary is short. The description may be as long

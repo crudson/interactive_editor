@@ -56,16 +56,23 @@ class InteractiveEditor
   end
 
   def self.edit(editor, self_, file=nil)
-    find_editor[editor].edit(self_, file)
+    find_editor(editor).edit(self_, file)
   end
 
-  def self.find_editor
-    #maybe serialise last file to disk, for recovery
+  def self.find_editor editor
+    if editor == :system
+      if ENV['EDITOR'].to_s.size > 0
+        editor = ENV['EDITOR']
+      else
+        raise "You need to set the EDITOR environment variable first"
+      end
+    end
+
     if defined?(Pry) and IRB == Pry
       IRB.config.interactive_editors ||= EDITORS
     else
       IRB.conf[:interactive_editors] ||= EDITORS
-    end
+    end[editor]
   end
 
   module Exec
@@ -103,14 +110,21 @@ class InteractiveEditor
       define_method(k) do |*args|
         InteractiveEditor.edit(v || k, self, *args)
       end
+
+      # Provide methods for executing the edited file again, rather than having
+      #  to open, edit, and save (which has to happen as it won't be executed
+      #  if mtime is unchanged),
+      define_method("#{k}_x") do |*args|
+        InteractiveEditor.find_editor(k).execute
+      end
     end
 
     def ed(*args)
-      if ENV['EDITOR'].to_s.size > 0
-        InteractiveEditor.edit(ENV['EDITOR'], self, *args)
-      else
-        raise "You need to set the EDITOR environment variable first"
-      end
+      InteractiveEditor.edit(:system, self, *args)
+    end
+
+    def ed_x
+      InteractiveEditor.find_editor(:system).execute
     end
   end
 end
